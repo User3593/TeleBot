@@ -1,28 +1,63 @@
 const got = require('got');
-const base_url = 'https://api.telegram.org/bot343581946:AAENXqqX354avRrDK4NYll5zOVL2XJjz8bQ/';
+const baseUrl = 'https://api.telegram.org/bot343581946:AAENXqqX354avRrDK4NYll5zOVL2XJjz8bQ/';
 const upd = 'getUpdates';
-var send = 'sendMessage?chat_id=176982703&text=';
+var updId;
+var chatId;
 
-var resultP1 = function (response) {
-    const data = JSON.parse(response.body);
+function lastUpdId(response) {
+    var data;
+    try {
+        data = JSON.parse(response.body);
+    } catch (error) {
+        console.log('не JSON');
+        clearInterval(timer);
+        return;
+    }
+    updId = data.result[data.result.length - 1].update_id;
+}
+
+function resultP1(response) {
+    var data;
+    try {
+        data = JSON.parse(response.body);
+    } catch (error) {
+        console.log('не JSON');
+        clearInterval(timer);
+        return;
+    }
     var mess;
-    var lastMessage;
     for (var i = 0; i < data.result.length; i++) {
         mess = data.result[i];
-        if ('message' in mess) {
-            console.log(mess.message.from.first_name + ": " + mess.message.text);
-            lastMessage = mess.message.text;
+        if (mess.update_id > updId && mess.message) {
+                console.log(mess.message.from.first_name + ": " + mess.message.text);
+                chatId = data.result[i].message.chat.id;
+                var lastMessage = mess.message.text;
+                p2(lastMessage);
+                updId = mess.update_id;
         }
-    }
-    return lastMessage;
-};
+    }    
+}
 
-const p2 = function(resultP1) {
-    send = send + resultP1;
-    got(base_url + send);
-};
+function p2(lastMessage) {
+    var send = 'sendMessage?chat_id=' + chatId + '&text=' + lastMessage;
+    got(baseUrl + send);
+}
 
-got(base_url + upd)
-    .then(resultP1)
-    .then(p2);
+got(baseUrl + upd)
+    .then(lastUpdId);
+
+function main() {
+    got(baseUrl + upd)
+        .then(resultP1);
+}
+
+var timer = setInterval(main, 300);
+
+
+
+
+
+
+
+
 
