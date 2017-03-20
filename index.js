@@ -1,28 +1,57 @@
 const got = require('got');
-const base_url = 'https://api.telegram.org/bot343581946:AAENXqqX354avRrDK4NYll5zOVL2XJjz8bQ/';
-const upd = 'getUpdates';
-var send = 'sendMessage?chat_id=176982703&text=';
+const config = require('./config.json');
+const baseUrl = 'https://api.telegram.org/bot' + config.token + '/';
 
-var resultP1 = function (response) {
-    const data = JSON.parse(response.body);
-    var mess;
-    var lastMessage;
-    for (var i = 0; i < data.result.length; i++) {
-        mess = data.result[i];
-        if ('message' in mess) {
-            console.log(mess.message.from.first_name + ": " + mess.message.text);
-            lastMessage = mess.message.text;
-        }
+function resultP1(response) {
+    var data;
+    try {
+        data = JSON.parse(response.body);
+    } catch (error) {
+        console.log('не JSON');
+        clearInterval(timer);
+        return;
     }
-    return lastMessage;
-};
 
-const p2 = function(resultP1) {
-    send = send + resultP1;
-    got(base_url + send);
-};
+    var mess = data.result[0];
+    if (mess === undefined){
+        return;
+    }
 
-got(base_url + upd)
-    .then(resultP1)
-    .then(p2);
+    var lastUpdId = data.result[data.result.length - 1].update_id;
+    var firstUpdId = data.result[0].update_id;
+
+    if (firstUpdId <= lastUpdId && mess.message) {
+        console.log(mess.message.from.first_name + ": " + mess.message.text);
+        var chatId = mess.message.chat.id;
+        var lastMessage = mess.message.text;
+        sendMessage(chatId, lastMessage);
+        clear(firstUpdId);
+    }
+}
+
+function sendMessage(chatId, lastMessage) {
+    lastMessage = encodeURI(lastMessage);
+    var send = 'sendMessage?chat_id=' + chatId + '&text=' + lastMessage;
+    got(baseUrl + send);
+}
+
+function clear(firstUpdId) {
+    firstUpdId = firstUpdId + 1;
+    got(baseUrl + 'getUpdates?offset=' + firstUpdId);
+}
+
+function main() {
+    got(baseUrl + 'getUpdates')
+        .then(resultP1);
+}
+
+var timer = setInterval(main, 2000);
+
+
+
+
+
+
+
+
 
