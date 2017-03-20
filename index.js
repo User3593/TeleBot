@@ -1,5 +1,6 @@
 const got = require('got');
-const baseUrl = 'https://api.telegram.org/bot343581946:AAENXqqX354avRrDK4NYll5zOVL2XJjz8bQ/';
+const config = require('./config.json');
+const baseUrl = 'https://api.telegram.org/bot' + config.token + '/';
 
 function resultP1(response) {
     var data;
@@ -44,7 +45,7 @@ function main() {
         .then(resultP1);
 }
 
-var timer = setInterval(main, 300);
+var timer = setInterval(main, 2000);
 
 
 
