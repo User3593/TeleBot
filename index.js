@@ -1,5 +1,5 @@
 const got = require('got');
-const base_url = 'https://api.telegram.org/bot343581946:AAENXqqX354avRrDK4NYll5zOVL2XJjz8bQ/';
+const base_url = 'https://api.telegram.org/bot/';
 const upd = 'getUpdates';
 var send = 'sendMessage?chat_id=176982703&text=';
 
